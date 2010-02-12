@@ -104,13 +104,18 @@ webdriver.By.Strategy = {
   name: 'name',
 
   /**
-   * Find an element by one of its class names. Only one class name may be
-   * specified per search.
-   */
+  * Find an element by one of its class names. Only one class name may be
+  * specified per search.
+  */
   className: 'class name',
 
   /**
-   * Find an A tag by its text context.
+  * Find an element by CSS selector using the native querySelector API
+  */
+  selector: 'css selector',
+
+  /**
+  * Find an A tag by its text context.
    */
   linkText: 'link text',
 
