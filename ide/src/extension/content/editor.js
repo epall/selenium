@@ -161,6 +161,7 @@ Editor.controller = {
 		case "cmd_save_suite":
 		case "cmd_save_suite_as":
 		case "cmd_selenium_play":
+		case "cmd_selenium_play_se2":
 		case "cmd_selenium_play_suite":
 		case "cmd_selenium_pause":
 		case "cmd_selenium_step":
@@ -186,6 +187,7 @@ Editor.controller = {
 			return true;
 		case "cmd_selenium_testrunner":
         case "cmd_selenium_play":
+        case "cmd_selenium_play_se2":
             return editor.app.isPlayable() && editor.selDebugger.state != Debugger.PLAYING;
         case "cmd_selenium_rollup":
             if (Editor.rollupManager) {
@@ -218,8 +220,12 @@ Editor.controller = {
 		case "cmd_save_suite_as": editor.app.saveNewTestSuite(); break;
 		case "cmd_selenium_play":
             editor.testSuiteProgress.reset();
-            editor.playCurrentTestCase(null, 0, 1);
+            editor.playCurrentTestCase(null, 0, 1, false);
 			break;
+		case "cmd_selenium_play_se2":
+            editor.testSuiteProgress.reset();
+            editor.playCurrentTestCase(null, 0, 1, true);
+            break;
 		case "cmd_selenium_play_suite":
 			editor.playTestSuite();
 			break;
@@ -620,7 +626,7 @@ Editor.prototype.showInBrowser = function(url, newWindow) {
     }
 }
 
-Editor.prototype.playCurrentTestCase = function(next, index, total) {
+Editor.prototype.playCurrentTestCase = function(next, index, total, useSe2) {
     var self = this;
     this.selDebugger.start(function(failed) {
             self.log.debug("finished execution of test case: failed=" + failed);
@@ -633,7 +639,7 @@ Editor.prototype.playCurrentTestCase = function(next, index, total) {
             self.suiteTreeView.currentRowUpdated();
             self.testSuiteProgress.update(index + 1, total, failed);
             if (next) next();
-        }, index > 0 /* reuse last window if index > 0 */);
+        }, index > 0 /* reuse last window if index > 0 */, useSe2);
 }
 
 Editor.prototype.playTestSuite = function() {
@@ -651,7 +657,7 @@ Editor.prototype.playTestSuite = function() {
         if (++index < self.app.getTestSuite().tests.length) {
             self.suiteTreeView.scrollToRow(index);
             self.app.showTestCaseFromSuite(self.app.getTestSuite().tests[index]);
-            self.playCurrentTestCase(arguments.callee, index, total);
+            self.playCurrentTestCase(arguments.callee, index, total, false);
         }
     })();
 }

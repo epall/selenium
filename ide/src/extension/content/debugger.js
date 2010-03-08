@@ -49,6 +49,7 @@ function Debugger(editor) {
 
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-commandhandlers.js', this.runner);
+		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium-commandhandlers-async.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-executionloop.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-browserbot.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-testrunner-original.js', this.runner);
@@ -72,6 +73,8 @@ function Debugger(editor) {
                 this.log.error("error loading plugin provided user extension: " + error);
             }
         }
+        subScriptLoader.loadSubScript('chrome://selenium-ide/content/webdriver-jsapi-client.js', this.runner);
+        subScriptLoader.loadSubScript('chrome://selenium-ide/content/webdriver-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium-runner.js', this.runner);
 
         this.editor.infoPanel.logView.setLog(this.runner.LOG);
@@ -114,7 +117,7 @@ Debugger.prototype.getLog = function() {
     return this.runner.LOG;
 }
 
-Debugger.prototype.start = function(complete, useLastWindow) {
+Debugger.prototype.start = function(complete, useLastWindow, useSe2) {
 	document.getElementById("record-button").checked = false;
 	this.editor.toggleRecordingEnabled(false);
 
@@ -135,7 +138,7 @@ Debugger.prototype.start = function(complete, useLastWindow) {
                     }
                 }
             }
-        }, useLastWindow);
+        }, useLastWindow, useSe2);
 };
 
 Debugger.prototype.executeCommand = function(command) {
