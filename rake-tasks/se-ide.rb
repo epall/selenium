@@ -14,6 +14,11 @@ namespace :se_ide do
            "ide/src/extension/content/selenium/scripts"
       mkdir "ide/src/extension/content-files"
       ln_s Dir.glob(base_ide_dir + "/common/src/js/core/scripts/selenium-testrunner.js"), "ide/src/extension/content-files"
+
+      mkdir_p "ide/src/extension/content/selenium-tests/tests/html"
+      ln_s Dir.glob(base_ide_dir + "/selenium/test/js/html/*"),
+        "ide/src/extension/content/selenium-tests/tests/html"
+
     elsif windows?
       # the files in core -- except for the scripts directory which already exists in the target
       f = Dir.glob(base_ide_dir + "/common/src/js/core/*").select { |fn| fn != base_ide_dir + "/common/src/js/core/scripts" }
@@ -28,7 +33,17 @@ namespace :se_ide do
         files << c.gsub(base_ide_dir + "/common/src/js/core/scripts", "ide/src/extension/content/selenium/scripts")
         cp c, "ide/src/extension/content/selenium/scripts"
       end
-      
+
+      # need HTML for testing, too
+      mkdir "ide/src/extension/content/selenium-tests"
+      mkdir "ide/src/extension/content/selenium-tests/tests"
+      mkdir "ide/src/extension/content/selenium-tests/tests/html"
+      f = Dir.glob(base_ide_dir + "/selenium/test/js/html/*")
+      f.each do |c|
+        files << c.gsub(base_ide_dir + "/selenium/test/js/html", "ide/src/extension/content/selenium-tests/tests/html")
+        cp c, "ide/src/extension/content/selenium-tests/tests/html"
+      end
+
       # and lastly the scriptrunner
       mkdir "ide/src/extension/content-files"
       f = Dir.glob(base_ide_dir + "/common/src/js/core/scripts/selenium-testrunner.js")
@@ -86,6 +101,9 @@ namespace :se_ide do
       rm base_ide_dir + "/proxy_files.txt"
     end
     rmdir "ide/src/extension/content-files"
+    rmdir "ide/src/extension/content/selenium-tests/tests/html"
+    rmdir "ide/src/extension/content/selenium-tests/tests"
+    rmdir "ide/src/extension/content/selenium-tests"
     rm "ide/src/extension/components/SeleniumIDEGenericAutoCompleteSearch.xpt"
   end
 end

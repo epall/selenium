@@ -384,6 +384,14 @@ java_test(:name => "webdriver-firefox-test",
                      :'webdriver-common-test',
                    ])
 
+java_test(:name => "ide-test",
+         :srcs  => [ "ide/test/java/**/*.java" ],
+         :deps => [
+                    :'webdriver-firefox',
+                    :'webdriver-common-test',
+                    "se_ide:setup_proxy"
+                  ])
+                  
 java_test(:name => "webdriver-single-testsuite",
           :srcs  => [ "common/test/java/org/openqa/selenium/SingleTestSuite.java"],
           :deps => [
