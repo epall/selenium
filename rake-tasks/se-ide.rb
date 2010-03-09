@@ -4,6 +4,10 @@ namespace :se_ide do
   base_ide_dir = File.expand_path(File.dirname(Dir.glob("Rakefile")[0]))
   files = []
 
+  task :ensure_proxy_setup do
+    Rake::Task['se_ide:setup_proxy'].invoke unless File.exists? "ide/src/extension/content-files"
+  end
+
   task :setup_proxy do
     if unix?
       # the files in core -- except for the scripts directory which already exists in the target
