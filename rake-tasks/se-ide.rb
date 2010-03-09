@@ -3,7 +3,7 @@ require 'rake-tasks/checks.rb'
 namespace :se_ide do
   base_ide_dir = File.expand_path(File.dirname(Dir.glob("Rakefile")[0]))
   files = []
-
+  
   task :ensure_proxy_setup do
     Rake::Task['se_ide:setup_proxy'].invoke unless File.exists? "ide/src/extension/content-files"
   end
@@ -22,6 +22,8 @@ namespace :se_ide do
       mkdir_p "ide/src/extension/content/selenium-tests/tests/html"
       ln_s Dir.glob(base_ide_dir + "/selenium/test/js/html/*"),
         "ide/src/extension/content/selenium-tests/tests/html"
+      ln_s Dir.glob(base_ide_dir + "/selenium/test/js/*.html"),
+        "ide/src/extension/content/selenium-tests/tests"
 
     elsif windows?
       # the files in core -- except for the scripts directory which already exists in the target
@@ -44,8 +46,15 @@ namespace :se_ide do
       mkdir "ide/src/extension/content/selenium-tests/tests/html"
       f = Dir.glob(base_ide_dir + "/selenium/test/js/html/*")
       f.each do |c|
-        files << c.gsub(base_ide_dir + "/selenium/test/js/html", "ide/src/extension/content/selenium-tests/tests/html")
+        files << c.gsub(base_ide_dir + "/selenium/test/js/", "ide/src/extension/content/selenium-tests/tests/")
         cp c, "ide/src/extension/content/selenium-tests/tests/html"
+      end
+
+      # bring in Core tests that we can run against IDE
+      f = Dir.glob(base_ide_dir + "/selenium/test/js/*.html")
+      f.each do |c|
+        files << c.gsub(base_ide_dir + "/selenium/test/js/", "ide/src/extension/content/selenium-tests/tests/")
+        cp c, "ide/src/extension/content/selenium-tests/tests"
       end
 
       # and lastly the scriptrunner
