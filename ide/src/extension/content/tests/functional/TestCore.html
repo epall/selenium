@@ -3,6 +3,19 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title>TestPlay</title>
 	</head>
+	<script type="text/javascript" charset="utf-8">
+  function gup( name )
+  {
+    name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+    var regexS = "[\\?&]"+name+"=([^&#]*)";
+    var regex = new RegExp( regexS );
+    var results = regex.exec( window.location.href );
+    if( results == null )
+    return "";
+    else
+    return results[1];
+  }
+  </script>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
@@ -10,7 +23,9 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>chrome://selenium-ide/content/tests/functional/TestCore-test.html</td>
+	<td>chrome://selenium-ide/content/tests/functional/TestCore-test.html?test=<script type="text/javascript" charset="utf-8">
+	 document.write(gup('test'));
+	</script></td>
 	<td></td>
 </tr>
 <tr>

@@ -8,6 +8,19 @@
 		<script type="text/javascript" src="chrome://selenium-ide/content/selenium/lib/scriptaculous/unittest.js"></script>
 		<script type="text/javascript" src="chrome://selenium-ide/content/preferences.js"></script>
     <script type="text/javascript" src="chrome://selenium-ide/content/selenium-ide-loader.js"></script>
+    	<script type="text/javascript" charset="utf-8">
+      function gup( name )
+      {
+        name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+        var regexS = "[\\?&]"+name+"=([^&#]*)";
+        var regex = new RegExp( regexS );
+        var results = regex.exec( window.location.href );
+        if( results == null )
+        return "";
+        else
+        return results[1];
+      }
+      </script>
   </head>
 
   <body>
@@ -33,7 +46,7 @@ new Test.Unit.Runner({
 
   testPlay: function() { with(this) {
     var editor = SeleniumIDE.Loader.getTopEditor();
-    var testCase = editor.app.getFormats().getDefaultFormat().loadFile("chrome://selenium-ide/content/selenium-tests/tests/TestClick.html", true);
+    var testCase = editor.app.getFormats().getDefaultFormat().loadFile("chrome://selenium-ide/content/selenium-tests/tests/"+gup('test'), true);
     editor.app.setTestCaseWithNewSuite(testCase);
     editor.app.setBaseURL("chrome://selenium-ide/content/selenium-tests/tests/");
     var testWindow = editor.showInBrowser("about:blank", true);

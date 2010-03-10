@@ -7,6 +7,37 @@ namespace :se_ide do
   task :ensure_proxy_setup do
     Rake::Task['se_ide:setup_proxy'].invoke unless File.exists? "ide/src/extension/content-files"
   end
+  
+  task :generate_core_tests do
+    template = <<-EOF
+    <html>
+    	<head>
+    		<script type="text/javascript" src="chrome://selenium-ide/content/selenium-ide-loader.js" ></script>
+    		<script type="text/javascript" src="verifyCommands.js"></script>
+    	  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+    	  <title>Test Suite</title>
+    	</head>
+
+    	<body>
+    		<table border="1">
+    			<tr><td><b>IDE Core Suite</b></td></tr>
+    			<tr><td><a href="OpenSeleniumIDE.html">Open Selenium IDE</a></td></tr>
+    			EOF
+    files = Dir.entries(base_ide_dir + "/ide/src/extension/content/selenium-tests/tests")
+    files.select{|f| f =~ /^Test.*html$/}.each do |testname|
+			template += "    			<tr><td><a href=\"TestCore.html?test=#{testname}\">#{testname.split('.').first}</a></td></tr>\n"
+    end
+    
+    template += <<-EOF
+    		</table>
+    	</body>
+    </html>
+    EOF
+    
+    target = File.open(base_ide_dir + "/ide/src/extension/content/tests/functional/CoreSuite.html", 'w') do |f|
+      f.write(template)
+    end   
+  end
 
   task :setup_proxy do
     if unix?
