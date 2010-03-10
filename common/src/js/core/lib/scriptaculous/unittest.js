@@ -165,7 +165,7 @@ Test.Unit.Runner.prototype = {
     }
     this.currentTest = 0;
     this.logger = new Test.Unit.Logger(this.options.testLog);
-    setTimeout(this.runTests.bind(this), 1000);
+    setTimeout(this.runTests.bind(this), 100);
   },
   parseResultsURLQueryParameter: function() {
     return window.location.search.parseQuery()["resultsURL"];

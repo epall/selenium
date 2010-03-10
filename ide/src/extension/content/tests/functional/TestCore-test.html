@@ -28,7 +28,7 @@
   </div>
   <script type="text/javascript">
 Test.Unit.Testcase.prototype.waitFor = function(condition, nextPart) {
-  this.wait(3000, function() {
+  this.wait(200, function() {
     if (condition()) {
       nextPart();
     } else {
@@ -44,14 +44,14 @@ new Test.Unit.Runner({
   teardown: function() {
   },
 
-  testPlay: function() { with(this) {
+  testCore: function() { with(this) {
     var editor = SeleniumIDE.Loader.getTopEditor();
     var testCase = editor.app.getFormats().getDefaultFormat().loadFile("chrome://selenium-ide/content/selenium-tests/tests/"+gup('test'), true);
     editor.app.setTestCaseWithNewSuite(testCase);
     editor.app.setBaseURL("chrome://selenium-ide/content/selenium-tests/tests/");
     var testWindow = editor.showInBrowser("about:blank", true);
     var complete = false;
-    wait(1000, function() {
+    wait(500, function() {
             editor.selDebugger.start(function(failed) {
                     assert(!failed);
                     complete = true;
