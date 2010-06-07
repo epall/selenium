@@ -1,6 +1,5 @@
 package org.openqa.selenium.ide;
 
-import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -21,7 +20,6 @@ import org.openqa.selenium.internal.FileHandler;
 import org.openqa.selenium.internal.TemporaryFilesystem;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,29 +29,7 @@ public class IDETestSuite extends TestCase {
 
   public static Test suite() throws Exception {
     TestSuite suite = new TestSuite(IDETestSuite.class);
-    return addCoreTests(suite);
-  }
-
-  private static Test addCoreTests(TestSuite suite) throws Exception {
-    FirefoxProfile profile = new FirefoxProfile();
-    profile.addExtension(findIDEExtensionRootInSourceCode());
-    final FirefoxDriver persistentDriver = new FirefoxDriver(profile);
-    File coreTestsDir = findCoreTestsInSourceCode();
-    File[] files = coreTestsDir.listFiles(new FilenameFilter(){
-      public boolean accept(File dir, String name) {
-        return name.endsWith(".html");
-      }
-    });
-    for(File testFile : files){
-      suite.addTest(new IDECoreTest(persistentDriver, testFile.getName()));
-    }
-    return new TestSetup(suite){
-      @Override
-      protected void tearDown() throws Exception {
-        System.err.println("Closing driver");
-        persistentDriver.close();
-      }
-    };
+    return suite;
   }
 
   public void testExtensionFinding() throws Exception {
@@ -104,29 +80,11 @@ public class IDETestSuite extends TestCase {
     }
   }
 
-  static File findIDEExtensionRootInSourceCode() {
+  private File findIDEExtensionRootInSourceCode() {
     String[] possiblePaths = {
         "ide/src/extension",
         "../ide/src/extension",
         "../../ide/src/extension",
-    };
-
-    File current;
-    for (String potential : possiblePaths) {
-      current = new File(potential);
-      if (current.exists()) {
-        return current;
-      }
-    }
-
-    throw new WebDriverException("Unable to locate IDE driver extension in developer source");
-  }
-
-  static File findCoreTestsInSourceCode() {
-    String[] possiblePaths = {
-        "ide/src/extension/content/selenium-tests/tests",
-        "../ide/src/extension/content/selenium-tests/tests",
-        "../../ide/src/extension/content/selenium-tests/tests",
     };
 
     File current;

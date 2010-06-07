@@ -389,7 +389,7 @@ java_test(:name => "ide-test",
          :deps => [
                     :'webdriver-firefox',
                     :'webdriver-common-test',
-                    "se_ide:ensure_proxy_setup"
+                    "se_ide:setup_proxy"
                   ])
                   
 java_test(:name => "webdriver-single-testsuite",

@@ -19,8 +19,9 @@ function Debugger(editor) {
 	this.editor = editor;
     this.pauseTimeout = 3000;
 	var self = this;
-	
 	this.init = function() {
+		
+		try{
 		if (this.runner != null) {
 			// already initialized
 			return;
@@ -45,7 +46,7 @@ function Debugger(editor) {
 		
 		const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
 	    .getService(Components.interfaces.mozIJSSubScriptLoader);
-		//subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/selenium-logging.js', this.runner);
+		
 
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-commandhandlers.js', this.runner);
@@ -72,6 +73,9 @@ function Debugger(editor) {
                 this.log.error("error loading plugin provided user extension: " + error);
             }
         }
+      
+        subScriptLoader.loadSubScript('chrome://selenium-ide/content/goog.js', this.runner);
+        subScriptLoader.loadSubScript('chrome://selenium-ide/content/webdriver-synchronous-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium-runner.js', this.runner);
 
         this.editor.infoPanel.logView.setLog(this.runner.LOG);
@@ -98,6 +102,8 @@ function Debugger(editor) {
             }
             return false;
         }
+        
+        }catch(e){LOG.error("warning:"+e);}
 	}
 }
 
@@ -114,11 +120,10 @@ Debugger.prototype.getLog = function() {
     return this.runner.LOG;
 }
 
-Debugger.prototype.start = function(complete, useLastWindow) {
+Debugger.prototype.start = function(complete, useLastWindow, useSe2) {
 	document.getElementById("record-button").checked = false;
 	this.editor.toggleRecordingEnabled(false);
-
-	this.log.debug("start");
+try{
 
     this.init();
     var self = this;
@@ -135,7 +140,9 @@ Debugger.prototype.start = function(complete, useLastWindow) {
                     }
                 }
             }
-        }, useLastWindow);
+        }, useLastWindow, useSe2);
+        
+}catch(e){LOG.error("achtung: "+e);}   
 };
 
 Debugger.prototype.executeCommand = function(command) {

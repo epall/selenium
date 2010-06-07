@@ -110,8 +110,6 @@ TestLoop.prototype = {
         command.value = selenium.preprocessParameter(command.value);
         LOG.debug("Command found, going to execute " + command.command);
         this.result = handler.execute(selenium, command);
-        
-
         this.waitForCondition = this.result.terminationCondition;
 
     },
@@ -134,7 +132,7 @@ TestLoop.prototype = {
          * on with test.  Fail the current test if there's a timeout or an
          * exception.
          */
-        //LOG.debug("currentTest.continueTestWhenConditionIsTrue()");
+       
         selenium.browserbot.runScheduledPollers();
         try {
             if (this.waitForCondition == null) {

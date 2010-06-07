@@ -63,23 +63,52 @@ MozillaBrowserBot.prototype.modifyWindowToRecordPopUpDialogs = function(windowTo
     return BrowserBot.prototype.modifyWindowToRecordPopUpDialogs.call(this, windowToModify, browserBot);
 }
 
-Selenium.prototype.doPause = function(waitTime) {
-    currentTest.pauseInterval = waitTime;
+var IDECommands = {
+    doPause: function(waitTime) {
+        currentTest.pauseInterval = waitTime;
+        if(currentTest.async){
+            currentTest.result = {};
+            currentTest.resumeFromCallback();
+        }
+    },
+
+    doEcho: function(message) {
+        LOG.info("echo: " + message);
+        if(currentTest.async){
+            currentTest.result = {};
+            currentTest.resumeFromCallback();
+        }
+    },
+
+    doSetSpeed: function(speed) {
+        var milliseconds = parseInt(speed);
+        if (milliseconds < 0) milliseconds = 0;
+        editor.setInterval(milliseconds);
+        if(currentTest.async){
+            currentTest.result = {};
+            currentTest.resumeFromCallback();
+        }
+    },
+
+    getSpeed: function() {
+        return editor.getInterval();
+        if(currentTest.async){
+            currentTest.result = {};
+            currentTest.resumeFromCallback();
+        }
+    },
+
+    doStore: function(value, varName) {
+        storedVars[varName] = value;
+        if(currentTest.async){
+            currentTest.result = {};
+            currentTest.resumeFromCallback();
+        }
+    }
 };
 
-Selenium.prototype.doEcho = function(message) {
-    LOG.info("echo: " + message);
-};
-
-Selenium.prototype.doSetSpeed = function(speed) {
-    var milliseconds = parseInt(speed);
-    if (milliseconds < 0) milliseconds = 0;
-    editor.setInterval(milliseconds);
-};
-
-Selenium.prototype.getSpeed = function() {
-    return editor.getInterval();
-};
+objectExtend(Selenium.prototype, IDECommands);
+objectExtend(SynchronousWebDriver.prototype, IDECommands);
 
 // doStore* methods are copied from selenium-testrunner.js
 Selenium.prototype.doStoreText = function(target, varName) {
@@ -89,10 +118,6 @@ Selenium.prototype.doStoreText = function(target, varName) {
 
 Selenium.prototype.doStoreAttribute = function(target, varName) {
     storedVars[varName] = this.page().findAttribute(target);
-};
-
-Selenium.prototype.doStore = function(value, varName) {
-    storedVars[varName] = value;
 };
 
 storedVars.nbsp = String.fromCharCode(160);
@@ -105,6 +130,28 @@ objectExtend(IDETestLoop.prototype, {
             TestLoop.call(this, commandFactory);
             this.handler = handler;
         },
+        
+        // overridden to remove call to continueTestWhenConditionIsTrue
+        resume: function() {
+            /**
+             * Select the next command and continue the test.
+             */
+            LOG.debug("currentTest.resume() - actually execute");
+            try {
+                selenium.browserbot.runScheduledPollers();
+                this._executeCurrentCommand();
+                if(!this.async){
+                    this.continueTestWhenConditionIsTrue();
+                }
+            } catch (e) {
+                if (!this._handleCommandError(e)) {
+                    this.testComplete();
+                } else {
+                    this.continueTest();
+                }
+            }
+        },
+        
         
         continueTestWhenConditionIsTrue: function() {
             if (shouldAbortCurrentCommand()) {
@@ -127,8 +174,6 @@ objectExtend(IDETestLoop.prototype, {
         },
         
         commandStarted: function() {
-            // editor.setState("playing");
-            //setState(Debugger.PLAYING);
             editor.view.rowUpdated(testCase.debugContext.debugIndex);
             editor.view.scrollToRow(testCase.debugContext.debugIndex);
         },
@@ -145,6 +190,16 @@ objectExtend(IDETestLoop.prototype, {
                 testCase.debugContext.currentCommand().result = 'done';
             }
             editor.view.rowUpdated(testCase.debugContext.debugIndex);
+        },
+        
+        handleAsyncError: function(error, message) {
+            error.isSeleniumError = true;
+            error.message = message;
+            if (!this._handleCommandError(error)) {
+                this.testComplete();
+            } else {
+                this.continueTest();
+            }
         },
 
         commandError: function(errorMessage) {
@@ -176,16 +231,13 @@ objectExtend(IDETestLoop.prototype, {
         testComplete: function() {
             LOG.debug("testComplete: failed=" + testCase.debugContext.failed);
             currentTest = null;
-            //editor.setState(null);
-            //editor.view.rowUpdated(testCase.debugContext.debugIndex);
             var failed = testCase.debugContext.failed;
             testCase.debugContext.reset();
             if (this.handler && this.handler.testComplete) this.handler.testComplete(failed);
         },
 
         pause: function() {
-            // editor.setState("paused");
-            setState(Debugger.PAUSED);
+           setState(Debugger.PAUSED);
         },
 
         _checkExpectedFailure: HtmlRunnerTestLoop.prototype._checkExpectedFailure
@@ -266,26 +318,45 @@ function createSelenium(baseURL, useLastWindow) {
     return selenium;
 }
 
-function start(baseURL, handler, useLastWindow) {
-	//if (!stopAndDo("start", baseURL)) return;
-    resetCurrentTest();
-	
-    selenium = createSelenium(baseURL, useLastWindow);
-    selenium.browserbot.selectWindow(null);
+function createWebDriver(baseURL, useLastWindow) {
+    var window;
+    if (useLastWindow) {
+        window = this.lastWindow;
+    }
+    if (!window) {
+        var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].getService(Components.interfaces.nsIWindowMediator);
+        window = wm.getMostRecentWindow('navigator:browser');
+    }
 
+    this.lastWindow = window;
+
+    var contentWindow = window.getBrowser().selectedBrowser.contentWindow;
+    var webdriver = new SynchronousWebDriver(baseURL, contentWindow);
+    return webdriver;
+}
+
+function start(baseURL, handler, useLastWindow, useSe2) {
+    resetCurrentTest();	
+	if(useSe2) {
+        selenium = createWebDriver(baseURL);
+	} else {
+        selenium = createSelenium(baseURL, useLastWindow);
+        selenium.browserbot.selectWindow(null);
+	}
+	
 	commandFactory = new CommandHandlerFactory();
 	commandFactory.registerAll(selenium);
-
 	currentTest = new IDETestLoop(commandFactory, handler);
-		
+	currentTest.async = false;
+	
 	currentTest.getCommandInterval = function() { return getInterval(); }
 	testCase.debugContext.reset();
 	currentTest.start();
-    //setState(Debugger.PLAYING);
+	
 }
 
 function executeCommand(baseURL, command) {
-	//if (!stopAndDo("executeCommand", baseURL, command)) return;
+	
     resetCurrentTest();
 
     selenium = createSelenium(baseURL);
@@ -294,6 +365,7 @@ function executeCommand(baseURL, command) {
 	commandFactory.registerAll(selenium);
 	
     currentTest = new IDETestLoop(commandFactory);
+    currentTest.async = false;
     
 	currentTest.getCommandInterval = function() { return 0; }
 	var first = true;

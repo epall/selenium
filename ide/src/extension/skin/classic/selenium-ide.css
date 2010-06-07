@@ -158,6 +158,9 @@ toolbarbutton.icon label {
 #play-button { 
   -moz-image-region: rect(0px 146px 16px 121px);
 }
+#play-se2-button {
+  -moz-image-region: rect(0px 175px 16px 146px);
+}
 .pause#pause-button { 
   -moz-image-region: rect(0px 32px 16px 16px);
 }
