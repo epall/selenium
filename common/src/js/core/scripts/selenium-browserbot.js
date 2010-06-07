@@ -724,7 +724,8 @@ BrowserBot.prototype.modifyWindowToRecordPopUpDialogs = function(windowToModify,
         if (windowName!=null) {
             openedWindow["seleniumWindowName"] = windowName;
         }
-        selenium.browserbot.openedWindows[windowName] = openedWindow;
+        var unsafeWindow = (new XPCNativeWrapper(openedWindow, "location", "document"));
+        selenium.browserbot.openedWindows[windowName] = unsafeWindow;
         return openedWindow;
     };
 
