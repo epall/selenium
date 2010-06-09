@@ -532,11 +532,13 @@ Editor.prototype.addCommand = function(command,target,value,window,insertBeforeL
             } else {
                 // popup
                 var windowName = window.name;
-                if (window.name == '') {
-					this.addCommand('selectWindow', 'null', '', window);
-                }else{
-					this.addCommand('selectWindow', "name=" + windowName, '', window);
-				}
+                if (window.name == 'selenium_blank') {
+                    this.addCommand('selectWindow', '_blank', '', window);
+                } else if (window.name == '') {
+                    this.addCommand('selectWindow', 'null', '', window);
+                } else {
+                    this.addCommand('selectWindow', "name=" + windowName, '', window);
+                }
             }
         }
 	}

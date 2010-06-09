@@ -69,7 +69,11 @@ Recorder.prototype.reattachWindowMethods = function() {
 			return self.originalOpen.call(window, url, windowName, windowFeatures, replaceFlag);
 		} else {
 			self.openCalled = true;
-			var result = self.windowMethods['open'].call(window, url, windowName, windowFeatures, replaceFlag);
+			var adjustedWindowName = windowName;
+			if(windowName == '' || windowName == '_blank'){
+					adjustedWindowName = "selenium_blank";
+			}
+			var result = self.windowMethods['open'].call(window, url, adjustedWindowName, windowFeatures, replaceFlag);
 			self.openCalled = false;
             if (result.wrappedJSObject) {
                 result = result.wrappedJSObject;
