@@ -1392,6 +1392,7 @@ Selenium.prototype.getLocation = function() {
    *
    * @return string the absolute URL of the current page
    */
+   
     return this.browserbot.getCurrentWindow().location.href;
 };
 
@@ -2738,6 +2739,7 @@ Selenium.prototype.doAddLocationStrategy = function(strategyName, functionDefini
             throw new SeleniumError("Error executing strategy function " + strategyName + ": " + extractExceptionMessage(ex));
         }
     }
+   
     this.browserbot.locationStrategies[strategyName] = safeStrategyFunction;
 }
 

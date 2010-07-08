@@ -1223,6 +1223,7 @@ BrowserBot.prototype._registerAllLocatorFunctions = function() {
     // TODO - don't do this in the constructor - only needed once ever
     this.locationStrategies = {};
     for (var functionName in this) {
+      
         var result = /^locateElementBy([A-Z].+)$/.exec(functionName);
         if (result != null) {
             var locatorFunction = this[functionName];
@@ -1233,6 +1234,7 @@ BrowserBot.prototype._registerAllLocatorFunctions = function() {
             // the function name
             var locatorPrefix = locatorFunction.prefix || result[1].toLowerCase();
             this.locationStrategies[locatorPrefix] = locatorFunction;
+          
         }
     }
 

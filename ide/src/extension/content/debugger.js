@@ -47,7 +47,6 @@ function Debugger(editor) {
 		const subScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
 	    .getService(Components.interfaces.mozIJSSubScriptLoader);
 		
-	    
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-commandhandlers.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium/scripts/selenium-executionloop.js', this.runner);
@@ -73,8 +72,8 @@ function Debugger(editor) {
                 this.log.error("error loading plugin provided user extension: " + error);
             }
         }
-      
-        subScriptLoader.loadSubScript('chrome://selenium-ide/content/goog.js', this.runner);
+        
+        subScriptLoader.loadSubScript('chrome://selenium-ide/content/proxy.js', this.runner);
         subScriptLoader.loadSubScript('chrome://selenium-ide/content/webdriver-synchronous-api.js', this.runner);
 		subScriptLoader.loadSubScript('chrome://selenium-ide/content/selenium-runner.js', this.runner);
 

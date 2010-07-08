@@ -336,6 +336,7 @@ function createWebDriver(baseURL, useLastWindow) {
 }
 
 function start(baseURL, handler, useLastWindow, useSe2) {
+	
     resetCurrentTest();	
 	if(useSe2) {
         selenium = createWebDriver(baseURL);
@@ -344,6 +345,7 @@ function start(baseURL, handler, useLastWindow, useSe2) {
         selenium.browserbot.selectWindow(null);
 	}
 	
+
 	commandFactory = new CommandHandlerFactory();
 	commandFactory.registerAll(selenium);
 	currentTest = new IDETestLoop(commandFactory, handler);
@@ -352,6 +354,7 @@ function start(baseURL, handler, useLastWindow, useSe2) {
 	currentTest.getCommandInterval = function() { return getInterval(); }
 	testCase.debugContext.reset();
 	currentTest.start();
+
 	
 }
 
