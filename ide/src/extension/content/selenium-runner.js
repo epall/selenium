@@ -292,6 +292,8 @@ this.stopping = false;
 
 function resetCurrentTest() {
 	currentTest = null;
+	newContext = null;
+	newFxbrowser = null;
 	testCase.debugContext.reset();
 	for (var i = 0; i < testCase.commands.length; i++) {
 		delete testCase.commands[i].result;
@@ -336,7 +338,6 @@ function createWebDriver(baseURL, useLastWindow) {
 }
 
 function start(baseURL, handler, useLastWindow, useSe2) {
-	
     resetCurrentTest();	
 	if(useSe2) {
         selenium = createWebDriver(baseURL);

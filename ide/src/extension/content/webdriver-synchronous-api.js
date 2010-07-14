@@ -2,7 +2,8 @@
   	  * This file describes the synchronous behavior. Functions call directly on the
       * FirefoxDriver object
       */
-
+    var newContext;
+    var newFxbrowser; 
 	function SynchronousWebDriver(baseURL,window) {	
 		
 		this.baseUrl = baseURL;
@@ -104,6 +105,9 @@
    	  * @param locator an element locator
    	  */
    	SynchronousWebDriver.prototype.doClick = function(locator) { 
+   		var script = [];
+	    script.push("document.old = true");
+	    this.driver.executeScript(script);
 		this.driver.click(locator);	
 	}
 
@@ -565,16 +569,25 @@
 	 * Select Frame
 	 */
 	
-	SynchronousWebDriver.prototype.doSelectFrame = function(locator) {
-		 this.context = switchToFrame_(this.driver,locator,this.context);	
+	SynchronousWebDriver.prototype.doSelectFrame = function(frameId) {
+		 newContext = switchToFrame_(this.driver,frameId,this.context);			
 	}
 
-	SynchronousWebDriver.prototype.doSelectWindow = function(windowId) {	 	
+	SynchronousWebDriver.prototype.doSelectWindow = function(windowId) {	 
 	 	 var pattern = /^([a-zA-Z]+)=(.*)$/;
 		 var result = windowId.match(pattern);
-		 var id = new Array(result[2]);
-		 this.context = switchToWindow(id);
-
+		 if(result == null){
+		 	windId = windowId;
+		 	newContext = this.context;
+		 }else{
+		 	windId = result[2];
+		 	var id = new Array(windId);
+		 	newContext = switchToWindow(id)[0];
+		 	newFxbrowser = switchToWindow(id)[1];
+		 	
+		 }
+		 
+		 
 	 }
  
      SynchronousWebDriver.prototype.doSetBrowserLogLevel = function(logLevel) {  
@@ -699,7 +712,7 @@
 	  * return with an error
 	  */
 	SynchronousWebDriver.prototype.doWaitForPageToLoad = function(timeout) {
-	  setTimeout(fnBind(currentTest.continueTestWhenConditionIsTrue, currentTest),30000);
+	  setTimeout(fnBind(currentTest.continueTestWhenConditionIsTrue,currentTest),5);
 	  return this.makePageLoadCondition(timeout);
 	}
 	
@@ -709,7 +722,7 @@
 	  * return with an error
 	  */
 	SynchronousWebDriver.prototype.doWaitForFrameToLoad = function(timeout) {
-	setTimeout(fnBind(currentTest.continueTestWhenConditionIsTrue, currentTest),30000);
+	setTimeout(fnBind(currentTest.continueTestWhenConditionIsTrue, currentTest),5);
 	  return this.makePageLoadCondition(timeout);
 	  
 	}
@@ -719,24 +732,23 @@
 	    if (timeout == null) {
 	        timeout = this.defaultTimeout;
 	    }
+	    
+	    
 	    var timeoutTime = getTimeoutTime(timeout);
 	    
-	     var currentWindow = this.driver.getCurrentWindowHandle(); 
-	     var tryToSwitch = function() {
-	        var failed = false;
-	        switchToWindow(name);   
-	            failed = true;
-	            if(new Date().getTime() > timeoutTime){
-	                currentTest.handleAsyncError(new Error(), "Timeout exceeded waiting for popup");
-	            } else {
-	                tryToSwitch();
+	    var tryToSwitch = function() {
+	      	     	
+	     	try{
+	     		var currentWindow = new Array(name);
+	            newContext = switchToWindow(currentWindow)[0];
+	            newFxbrowser = switchToWindow(currentWindow)[1];
+	     		
+	     	}catch(e){
+	     		 if(new Date().getTime() > timeoutTime){
+	               throw new SeleniumError("Timed out after " + timeout + "ms");
 	            }
-	      
-	            if(!failed){
-	            	var currentWindow = new Array(currentWindow);
-	                switchToWindow(currentWindow);
-	                
-	            }
+	     	}
+	        
 	    };
 	    
 	    tryToSwitch();
@@ -1008,7 +1020,8 @@
 	  * 
 	  */
 	SynchronousWebDriver.prototype.getLocation = function() {  
-	  	return this.driver.getCurrentUrl();
+		var url = this.driver.getCurrentUrl();
+	  	return url;
 	}
 	
 	/** 
@@ -1554,9 +1567,9 @@
 	 }
 	
 	//==================================================================================
+
 	SynchronousWebDriver.prototype.makePageLoadCondition = function(timeout) {
 		var driver = this.driver;
-	    var result = this.result;
 	    if (timeout == null) {
 	        timeout = this.defaultTimeout;
 	    }
@@ -1575,15 +1588,21 @@
 	        switch(state){
 	            case "retry":
 	            var script = [];
-	            script.push("return (!document.old && 'complete' == document.readyState)");
+	            script.push("return(!document.old && 'complete' == document.readyState)");
 	            currentRequest = driver.executeScript(script);
-	            if(currentRequest.value){
-	              return true;
-	            }
-	            return false;
+	            state = "requesting";
+            	return false;
+	       
+            	case "requesting":          
+            	if(currentRequest.value){
+                    return true;
+            	}   
+            	state = "retry";
+            	return false;
 	        }
 	    }
-	};
+
+};
 	
 	SynchronousWebDriver.prototype.preprocessParameter = Selenium.prototype.preprocessParameter;
 	SynchronousWebDriver.prototype.replaceVariables = Selenium.prototype.replaceVariables;

@@ -101,11 +101,12 @@
 	
 	 this.fxdriver = new FirefoxDriver();
 	 this.driver = this.fxdriver.driver;
-     this.context = new Context(this.driver.id); 
+	 this.context = new Context(this.driver.id); 
+	 
    
-	}
+}
 	
-	var withoutElementIdMethod = ["getCurrentWindowHandle","get","close","getCurrentUrl","getPageSource","findChildElements","findElements","switchToFrame","goBack","refresh","title","addCookie","getCookie","findElement","executeScript","setMouseSpeed","getMouseSpeed","addCookie","deleteCookie","deleteAllCookies","getMouseSpeed","getScreenshotAsBase64()"];
+	var withoutElementIdMethod = ["getCurrentWindowHandle","get","getCurrentUrl","close","getPageSource","findChildElements","findElements","switchToFrame","goBack","refresh","title","addCookie","getCookie","findElement","executeScript","setMouseSpeed","getMouseSpeed","addCookie","deleteCookie","deleteAllCookies","getMouseSpeed","getScreenshotAsBase64()"];
 
 	var withElementIdMethod = ["click","getText","getTagName","submit","getValue","setSelected","sendKeys","getTagName","getAttribute","submit","isSelected","toggle","dragElement","getSize","getLocation","isDisplayed"];
  
@@ -115,7 +116,7 @@
 	 * 
 	 */
 	WebDriverProxy.prototype.getDriverInstance = function(){
-	    
+	   
 		 for (method in this.driver){
 		 	if ( typeof this.driver[method] == "function"){
 	  				if(withoutElementIdMethod.indexOf(method) != -1){
@@ -142,25 +143,34 @@
 	 * @param ct - the context
 	 * @param fx - fxbrowser
 	 */
+	
 	WebDriverProxy.prototype.createNewFunctionWithoutID = function(realF,object,ct,fx){
 		return function(){	 
+		
+			if(newContext){				
+				ct = newContext;
+				if(newFxbrowser != null)
+				fx = newFxbrowser;
+			}			
+			
 			var response = new FakeRespond();
 	        response.context = ct;
 	        response.context.fxbrowser = fx;
-			var args = new Array(response);	
-	    
-	        
-	        if(arguments[0] instanceof FakeRespond){
-	        	 	   realF.apply(object,arguments); 
-	        	 	   return response.response;
-	        }
-	        	 
-	        for(i=0;i<arguments.length;i++){    	 
+			var args = new Array(response);	 
+	       	
+	       	if(!(arguments[0] instanceof FakeRespond)){	
+	       		
+	       		for(i=0;i<arguments.length;i++){    	 
 	        	 	args.push(arguments[i]);
-	        }
+	        	}
 	        	 		
-	        realF.apply(object,args); 
-	       	return response.response;        	 	                 
+	        	realF.apply(object,args); 
+	       		return response.response;   
+	       		
+	       	}else{
+	       		 	realF.apply(object,arguments); 
+	        	 	return response.response;
+	       	}
 	        
 		};
 	}
@@ -176,7 +186,13 @@
 	WebDriverProxy.prototype.createNewFunctionWithID = function(realF,object,context,fxbrowser){
 		
 		return function(){	 
-	
+		
+				if(newContext){
+				context = newContext;
+				if(newFxbrowser != null)
+				fxbrowser = newFxbrowser;
+				}
+				
 				var response = new FakeRespond();
 	        	response.context = context;
 	        	response.context.fxbrowser = fxbrowser;
@@ -212,20 +228,20 @@
 		};
 	
 	}
-
-	function switchToFrame_ (driver,locator,context){
-		
+	
+	function switchToFrame_ (driver,frameId,context){		   
 			var response = new FakeRespond();
 	        response.context = context;
 	        response.context.fxbrowser = driver.fxbrowser;
 	        
-			 if ("relative=top" == locator) {
+			 if ("relative=top" == frameId) {
 		      	driver.switchToDefaultContent(response);  
 		     }
 		          
 		     var frameId = new Array(frameId);
 			 driver.switchToFrame(response,frameId);
-			 context = response.context;	      
+			 context = response.context;	  
+			
 			 return context;
 			 
 	}
@@ -234,7 +250,7 @@
 		
 	  		var windowFound = false;
 	  		var lookFor = windowId[0];
-	  
+	  		
 	  		var matches = function(win, lookFor) {
 	    		return !win.closed &&
 	           (win.content && win.content.name == lookFor) ||
@@ -249,6 +265,7 @@
 	   			 	if (matches(win,lookFor)) {  
 	      		  	win.focus();
 	      			if (win.top.fxdriver) {
+	      				fxbrowser = win.getBrowser();
 	        			res = new Context(win.fxdriver.id);
 	      			} else {
 	        				
@@ -259,7 +276,7 @@
 	      			break;
 	    		} 
 	   		}
-
+	   		
 		 	if (!windowFound) {	    
 		    var searchAttempt = opt_searchAttempt || 0;
 			    if (searchAttempt > 3) {
@@ -272,6 +289,8 @@
 			          setTimeout("self.switchToWindow(windowId,(searchAttempt + 1))",500);
 			    }
 	  		}
+	  		
+	  		return [res,fxbrowser];
 	}
 
 	/**
