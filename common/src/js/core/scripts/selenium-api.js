@@ -1954,14 +1954,14 @@ Selenium.prototype.doDragAndDrop = function(locator, movementsString) {
     var clientStartXY = getClientXY(element)
     var clientStartX = clientStartXY[0];
     var clientStartY = clientStartXY[1];
-    
+
     var movements = movementsString.split(/,/);
     var movementX = Number(movements[0]);
     var movementY = Number(movements[1]);
-    
+  
     var clientFinishX = ((clientStartX + movementX) < 0) ? 0 : (clientStartX + movementX);
     var clientFinishY = ((clientStartY + movementY) < 0) ? 0 : (clientStartY + movementY);
-    
+ 
     var mouseSpeed = this.mouseSpeed;
     var move = function(current, dest) {
         if (current == dest) return current;

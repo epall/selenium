@@ -11,6 +11,7 @@
 	  	this.browserbot = BrowserBot.createForWindow(window, false); 	
 	 	this.wdProxy = new WebDriverProxy();
 	  	this.driver = this.wdProxy.getDriverInstance();
+	  	this.fxbrowser = this.wdProxy.fxdriver.fxbrowser;
 	  	this.context = this.wdProxy.context;
 
 	  	this.locationStrategies = [];  	  	
@@ -45,8 +46,8 @@
 	SynchronousWebDriver.prototype.doAddSelection = function(locator,optionLocator) {
 		
 	    var element = findElement_(this.driver,locator,this.context)[1];
-	    var elementId = findElement_(this.driver,locator,this.context)[1];
-	    
+	    var elementId = findElement_(this.driver,locator,this.context)[0];
+	
 	    if (!("options" in element)) {
 	        throw new SeleniumError("Specified element is not a Select (has no options)");
 	    }
@@ -56,6 +57,7 @@
 	    }
 	    
 	    this.doSelect(locator,optionLocator);
+	    
 	}
 	
 	/**
@@ -174,7 +176,7 @@
 	  * @param movementsString - offset in pixels from the current location to which the element should be moved
 	  */   
 	SynchronousWebDriver.prototype.doDragdrop = function(locator, movementsString) {
-   		this.doDragAndDrop(locator, movementsString);
+   		this.doDragAndDrop(locator,movementsString);
 	}
 	
 	/**
@@ -183,6 +185,8 @@
 	  * @param movementsString - offset in pixels from the current location to which the element should be moved
 	  */   
 	SynchronousWebDriver.prototype.doDragAndDrop = function(locator, movementsString) {
+		var movements = movementsString.split(/,/);
+		var movementsString = new Array(Number(movements[0]),Number(movements[1]));
 		return this.driver.dragElement(locator,movementsString);
 	}
 	
@@ -470,8 +474,7 @@
 	   * @param optionLocator an option locator
 	   * 
 	   */
-	SynchronousWebDriver.prototype.doSelect = function(selectLocator,optionLocator,wasSelected) {
-	   	  
+	SynchronousWebDriver.prototype.doSelect = function(selectLocator,optionLocator,wasSelected) {  
 	  var driver = this.driver;
 	  var strategyName = "implicit";
 	  var use = optionLocator;
@@ -548,12 +551,14 @@
 	  }
 	    
 	  var select = findElement_(this.driver,selectLocator,this.context)[0];
-
+	 
 	  var parameters = function(param1,param2,param3){
 	  this.using = param1;
 	  this.value = param2;
 	  this.id = param3;
 	  };
+	  
+	  
 	  var map = [];
 	  map.push(new parameters(ElementLocator.TAG_NAME,"option",select));    
 	  var allOptions = driver.findChildElements(map);
@@ -570,16 +575,18 @@
 	 */
 	
 	SynchronousWebDriver.prototype.doSelectFrame = function(frameId) {
-		 newContext = switchToFrame_(this.driver,frameId,this.context);			
+		 newContext = switchToFrame_(this.driver,frameId,this.context,this.fxbrowser);		
 	}
 
 	SynchronousWebDriver.prototype.doSelectWindow = function(windowId) {	 
 	 	 var pattern = /^([a-zA-Z]+)=(.*)$/;
 		 var result = windowId.match(pattern);
+		
 		 if(result == null){
-		 	windId = windowId;
 		 	newContext = this.context;
+		 	newFxbrowser = this.fxbrowser;
 		 }else{
+		 	
 		 	windId = result[2];
 		 	var id = new Array(windId);
 		 	newContext = switchToWindow(id)[0];
@@ -1019,9 +1026,8 @@
 	  * @return string the absolute URL of the current page
 	  * 
 	  */
-	SynchronousWebDriver.prototype.getLocation = function() {  
-		var url = this.driver.getCurrentUrl();
-	  	return url;
+	SynchronousWebDriver.prototype.getLocation = function() {  	
+		return this.driver.getCurrentUrl();
 	}
 	
 	/** 

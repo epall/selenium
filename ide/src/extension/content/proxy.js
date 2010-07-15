@@ -155,6 +155,8 @@
 			
 			var response = new FakeRespond();
 	        response.context = ct;
+	      /*  if(newContext && newContext.frame)
+	        response.context.frame = newContext.frame;*/
 	        response.context.fxbrowser = fx;
 			var args = new Array(response);	 
 	       	
@@ -195,6 +197,8 @@
 				
 				var response = new FakeRespond();
 	        	response.context = context;
+	        	/*if(newContext && newContext.frame)
+	        	response.context.frame = newContext.frame;*/
 	        	response.context.fxbrowser = fxbrowser;
 				var args = new Array();	
 	        
@@ -229,19 +233,77 @@
 	
 	}
 	
-	function switchToFrame_ (driver,frameId,context){		   
+   findFrame = function(browser, frameId) {
+	  var stringId = "" + frameId;
+	  var names = stringId.split(".");
+	  var frame = browser.contentWindow;
+	  for (var i = 0; i < names.length; i++) {
+	    // Try a numerical index first
+	    var index = names[i] - 0;
+	    if (!isNaN(index)) {
+	      frame = frame.frames[index];
+	      if (frame) {
+	        return frame;
+	      }
+	    } else {
+	      // Fine. Use the name and loop
+	      var found = false;
+	      for (var j = 0; j < frame.frames.length; j++) {
+	        var f = frame.frames[j];
+	        if (f.name == names[i] || f.frameElement.id == names[i]) {
+	          frame = f;
+	          found = true;
+	          break;
+	        }
+	      }
+	
+	      if (!found) {
+	        return null;
+	      }
+	    }
+  }
+
+  return frame;
+};
+	
+	function switchToFrame_ (driver,id,context,fxb){		   
 			var response = new FakeRespond();
 	        response.context = context;
-	        response.context.fxbrowser = driver.fxbrowser;
+	        response.context.fxbrowser = fxb;
 	        
-			 if ("relative=top" == frameId) {
+	        LOG.info('a '+fxb);
+	        
+	        // Determine whether or not we need to care about frames.
+  			var frames = fxb.contentWindow.frames;
+  			if ("?" == response.context.frameId) {
+			    if (frames && frames.length) {
+			      if ("FRAME" == frames[0].frameElement.tagName) {
+			          response.context.frameId = 0;
+			      } else {
+			          response.context.frameId = undefined;
+			      }
+			    } else {
+			      response.context.frameId = undefined;
+			    }
+			  }
+			  
+			if (response.context.frameId !== undefined) {
+    			response.context.frame = findFrame(
+        		fxb, response.context.frameId);
+  			}
+	      
+	        var frameContext = response.context.frame;
+	        
+			 if ("relative=top" == id) {
 		      	driver.switchToDefaultContent(response);  
 		     }
 		          
-		     var frameId = new Array(frameId);
+		     var frameId = new Array(id);
 			 driver.switchToFrame(response,frameId);
-			 context = response.context;	  
-			
+			 context = response.context;
+			 
+			 context.frame = frameContext;
+			 
 			 return context;
 			 
 	}
