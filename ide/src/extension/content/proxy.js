@@ -106,7 +106,7 @@
    
 }
 	
-	var withoutElementIdMethod = ["getCurrentWindowHandle","get","getCurrentUrl","close","getPageSource","findChildElements","findElements","switchToFrame","goBack","refresh","title","addCookie","getCookie","findElement","executeScript","setMouseSpeed","getMouseSpeed","addCookie","deleteCookie","deleteAllCookies","getMouseSpeed","getScreenshotAsBase64()"];
+	var withoutElementIdMethod = ["getCurrentWindowHandle","get","getCurrentUrl","close","getPageSource","findChildElements","findElements","goBack","refresh","title","addCookie","getCookie","findElement","executeScript","setMouseSpeed","getMouseSpeed","addCookie","deleteCookie","deleteAllCookies","getMouseSpeed","getScreenshotAsBase64()"];
 
 	var withElementIdMethod = ["click","getText","getTagName","submit","getValue","setSelected","sendKeys","getTagName","getAttribute","submit","isSelected","toggle","dragElement","getSize","getLocation","isDisplayed"];
  
@@ -144,22 +144,27 @@
 	 * @param fx - fxbrowser
 	 */
 	
-	WebDriverProxy.prototype.createNewFunctionWithoutID = function(realF,object,ct,fx){
+	WebDriverProxy.prototype.createNewFunctionWithoutID = function(realF,object,ct,fxbrowser){
 		return function(){	 
 		
-			if(newContext){				
+			if(newContext){		
 				ct = newContext;
-				if(newFxbrowser != null)
-				fx = newFxbrowser;
+				if(newFxbrowser)
+				fxbrowser = newFxbrowser;
 			}			
 			
 			var response = new FakeRespond();
 	        response.context = ct;
-	      /*  if(newContext && newContext.frame)
-	        response.context.frame = newContext.frame;*/
-	        response.context.fxbrowser = fx;
-			var args = new Array(response);	 
-	       	
+	        response.context.frame = null;
+	        documentInFrame = null;
+	   
+	        var frameContext = searchFrames(fxbrowser,response.context);
+			if(frameContext)
+			response.context.frame = frameContext;
+	        
+	        response.context.fxbrowser = fxbrowser;
+			var args = new Array(response);	
+			
 	       	if(!(arguments[0] instanceof FakeRespond)){	
 	       		
 	       		for(i=0;i<arguments.length;i++){    	 
@@ -188,20 +193,30 @@
 	WebDriverProxy.prototype.createNewFunctionWithID = function(realF,object,context,fxbrowser){
 		
 		return function(){	 
+			
 		
 				if(newContext){
 				context = newContext;
-				if(newFxbrowser != null)
+				if(newFxbrowser)
 				fxbrowser = newFxbrowser;
 				}
+			
 				
 				var response = new FakeRespond();
 	        	response.context = context;
-	        	/*if(newContext && newContext.frame)
-	        	response.context.frame = newContext.frame;*/
-	        	response.context.fxbrowser = fxbrowser;
-				var args = new Array();	
+	            response.context.frame = null;
+	            documentInFrame = null;
+	        	var args = new Array();	
 	        
+	        
+			    var frameContext = searchFrames(fxbrowser,response.context);
+			    if(frameContext)
+			    response.context.frame = frameContext;
+	          
+			
+	        	response.context.fxbrowser = fxbrowser;
+	        	
+			
 			    // When the first argument is boolean means that 
 				// elementId is already calculated
 				if(typeof(arguments[0]) == 'boolean'){					   
@@ -233,7 +248,22 @@
 	
 	}
 	
-   findFrame = function(browser, frameId) {
+	function searchFrames(fxbrowser,context){	
+		
+				if (context.frameId !== undefined) {
+	    			var frame = findFrame(fxbrowser,context.frameId);
+	    			if(frame && frame.document){
+	    				documentInFrame = frame.document;
+	    				context.frame  = frame;
+	    				
+	    			}
+	        		
+	  			}
+	            
+	  		return context.frame;	
+	}        
+	
+    findFrame = function(browser, frameId) {
 	  var stringId = "" + frameId;
 	  var names = stringId.split(".");
 	  var frame = browser.contentWindow;
@@ -262,54 +292,36 @@
 	      }
 	    }
   }
-
-  return frame;
+  
+ return frame;
+  
 };
 	
-	function switchToFrame_ (driver,id,context,fxb){		   
+	function switchToFrame_(driver,id,context,fxb){	
+		
+			if(newContext){
+				context = new Context(context,id);
+				if(newFxbrowser)
+				fxbrowser = newFxbrowser;
+			}
+			
 			var response = new FakeRespond();
 	        response.context = context;
 	        response.context.fxbrowser = fxb;
 	        
-	        LOG.info('a '+fxb);
 	        
-	        // Determine whether or not we need to care about frames.
-  			var frames = fxb.contentWindow.frames;
-  			if ("?" == response.context.frameId) {
-			    if (frames && frames.length) {
-			      if ("FRAME" == frames[0].frameElement.tagName) {
-			          response.context.frameId = 0;
-			      } else {
-			          response.context.frameId = undefined;
-			      }
-			    } else {
-			      response.context.frameId = undefined;
-			    }
-			  }
-			  
-			if (response.context.frameId !== undefined) {
-    			response.context.frame = findFrame(
-        		fxb, response.context.frameId);
-  			}
 	      
-	        var frameContext = response.context.frame;
-	        
-			 if ("relative=top" == id) {
-		      	driver.switchToDefaultContent(response);  
-		     }
-		          
 		     var frameId = new Array(id);
 			 driver.switchToFrame(response,frameId);
 			 context = response.context;
-			 
-			 context.frame = frameContext;
 			 
 			 return context;
 			 
 	}
 	
 	function switchToWindow(windowId,opt_searchAttempt) {
-		
+		    var context;
+		    var fxbrowser;
 	  		var windowFound = false;
 	  		var lookFor = windowId[0];
 	  		
@@ -328,10 +340,10 @@
 	      		  	win.focus();
 	      			if (win.top.fxdriver) {
 	      				fxbrowser = win.getBrowser();
-	        			res = new Context(win.fxdriver.id);
+	        			context = new Context(win.fxdriver.id);
 	      			} else {
 	        				
-	        				res = 'No driver found attached to top window!';
+	        				context = 'No driver found attached to top window!';
 	      			}     
 	      			// Found the desired window, stop the search.
 	      			windowFound = true;
@@ -343,7 +355,7 @@
 		    var searchAttempt = opt_searchAttempt || 0;
 			    if (searchAttempt > 3) {
 			      
-			      res = 'Unable to locate window "' + lookFor + '"';
+			      context = 'Unable to locate window "' + lookFor + '"';
 			      
 			    } else {
 			      var self = this;
@@ -352,7 +364,7 @@
 			    }
 	  		}
 	  		
-	  		return [res,fxbrowser];
+	  		return [context,fxbrowser];
 	}
 
 	/**

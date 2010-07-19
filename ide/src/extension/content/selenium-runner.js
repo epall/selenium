@@ -294,6 +294,7 @@ function resetCurrentTest() {
 	currentTest = null;
 	newContext = null;
 	newFxbrowser = null;
+	documentInFrame = null;
 	testCase.debugContext.reset();
 	for (var i = 0; i < testCase.commands.length; i++) {
 		delete testCase.commands[i].result;

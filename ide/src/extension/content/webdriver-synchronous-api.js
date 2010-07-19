@@ -4,6 +4,7 @@
       */
     var newContext;
     var newFxbrowser; 
+    var documentInFrame;
 	function SynchronousWebDriver(baseURL,window) {	
 		
 		this.baseUrl = baseURL;
@@ -575,27 +576,31 @@
 	 */
 	
 	SynchronousWebDriver.prototype.doSelectFrame = function(frameId) {
-		 newContext = switchToFrame_(this.driver,frameId,this.context,this.fxbrowser);		
+		 newContext = switchToFrame_(this.driver,frameId,this.context,this.fxbrowser);	
 	}
 
-	SynchronousWebDriver.prototype.doSelectWindow = function(windowId) {	 
-	 	 var pattern = /^([a-zA-Z]+)=(.*)$/;
-		 var result = windowId.match(pattern);
-		
-		 if(result == null){
+	SynchronousWebDriver.prototype.doSelectWindow = function(windowId) {	
+		var windId;
+	
+		if(windowId == 'null'){
 		 	newContext = this.context;
 		 	newFxbrowser = this.fxbrowser;
-		 }else{
+		 		 	
+		 } else{
 		 	
-		 	windId = result[2];
-		 	var id = new Array(windId);
-		 	newContext = switchToWindow(id)[0];
-		 	newFxbrowser = switchToWindow(id)[1];
-		 	
-		 }
-		 
-		 
-	 }
+				var pattern = /^([a-zA-Z]+)=(.*)$/;
+			 	var result = windowId.match(pattern);
+			 	if(result){
+			 		windId = result[2];
+			 	}else{
+			 		windId = windowId;
+			 	}
+			 	
+			 	var id = new Array(windId);
+			 	newContext = switchToWindow(id)[0];
+			 	newFxbrowser = switchToWindow(id)[1];
+			 } 
+ }
  
      SynchronousWebDriver.prototype.doSetBrowserLogLevel = function(logLevel) {  
 	    if (logLevel == null || logLevel == "") {
@@ -1208,8 +1213,13 @@
       * @return string the title of the current page
       */
 	
-	SynchronousWebDriver.prototype.getTitle = function() { 
-    	return this.driver.title();    
+	SynchronousWebDriver.prototype.getTitle = function() { 	
+    	var title =  this.driver.title(); 
+    	if(documentInFrame){ 
+		return documentInFrame.title;
+		}else{
+			return title;
+		}
 	}
 
 	/**
