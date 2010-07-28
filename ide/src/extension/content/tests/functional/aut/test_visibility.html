@@ -1,0 +1,40 @@
+<HTML>
+<head>
+<title>TestVisibility</title>
+<script type="text/javascript">
+function displayParaph()
+{
+
+var objects = document.getElementsByTagName("p");
+for(var no=0;no<objects.length;no++)
+{
+
+objects[no].style.visibility = "visible";
+objects[no].style.display = "inline";
+
+}
+
+}
+</script>
+</head>
+<body>
+<fieldset>
+<p id="firstParagraph" align="center">This is a normal text paragraph which contains so many characters
+that it will most probably be split into several lines by a browser</p>
+<br>
+<br>
+<p id="secondParagraph" align="center" style="visibility: hidden;">this is a second paragraph</p>
+<br>
+<br>
+<p id="thirdParagraph" align="center" style="visibility: hidden;">this is a <b id="thirdSubElement">sub-element</b> of the third paragraph</p>
+<br>
+<br>
+<p id="fourthParagraph" align="center" style="display: none">A fourth paragraph with a CSS display property</p>
+<br>
+<br>
+<p align="center">
+<input type="button" name="displayBtn" value="click here to display the hidden paragraphs" onclick="displayParaph()">
+</p>
+</fieldset>
+</body>
+</HTML>

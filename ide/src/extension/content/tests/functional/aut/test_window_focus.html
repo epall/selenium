@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>TestWindowFocus</title>
+<script type="text/javascript">
+function openWindow()
+{
+win=window.open('','','width=200,height=100');
+win.document.write("<p>This is 'SECOND Window'</p>");
+win.document.title ="New Title";
+}
+</script>
+</head>
+<body>
+
+<input type="button" value="Open window" name="openNewWindow" onclick="openWindow()" />
+
+</body>
+</html>

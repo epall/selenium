@@ -1,0 +1,62 @@
+<html>
+<head>
+
+<script type="text/javascript">
+
+function mousedown()
+ {
+	var objects = document.getElementsByTagName("div");
+	for(var no=0;no<objects.length;no++)
+	{
+
+	objects[no].style.visibility = "hidden";
+
+	}
+	
+ } 
+
+function mouseup()
+  {
+	var objects = document.getElementsByTagName("div");
+	for(var no=0;no<objects.length;no++)
+	{
+
+	objects[no].style.visibility = "visible";
+
+	}
+	
+ } 
+
+function mousemove()
+  {
+	 var element = document.getElementById("p2");
+	 element.style.background ="red";
+	 window.status="Success!!";
+	
+ }
+ 
+</script>
+</head>
+
+<body>
+
+<p>Move the mouse over the image to see it switch.</p>
+<p align='center'>
+<img id='img' width="25%" height="25%" src="chrome://selenium-ide/content/tests/functional/aut/img/terrest_gif.gif" 
+    onmouseover="this.src='chrome://selenium-ide/content/tests/functional/aut/img/dino_gif.gif';" 
+    onmouseout="this.src='chrome://selenium-ide/content/tests/functional/aut/img/terrest_gif.gif';">
+</p>
+
+	<div>
+	<p id="visibleparagraph1">This is a paragraph.</p>
+	<p id="visibleparagraph2">This is another paragraph.</p>
+	</div>
+	<p id="p1" onmousedown="mousedown()" onmouseup="mouseup()"> Click here to test the mouseup and mousedown event.</p>
+
+	<p id="p2" onmousemove="mousemove()">Mouse move Test</p>
+	
+	<input id="realname" onKeyDown="window.status='down!' onKeyUp ="window.status='up!'">
+
+</body>
+
+</html>
