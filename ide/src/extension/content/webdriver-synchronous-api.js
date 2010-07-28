@@ -804,10 +804,10 @@
 		var attributeType = [];
 		attributeType.push("type"); 
 		  
-		for(var input in allInputs){  	    
-		    type = this.driver.getAttribute(true,input,attributeType);	      
+		for(var input in allInputs){  	
+		    type = this.driver.getAttribute(true, allInputs[input],attributeType);
 		    if(("button" == type) || ("submit" == type) || ("reset" == type)){
-		        var att = this.driver.getAttribute(true,input,attributeId);	         
+		        var att = this.driver.getAttribute(true,allInputs[input],attributeId);	         
 		        buttons.push(att);
 		    }
 		}
@@ -831,9 +831,9 @@
 	  	attributeType.push("type");
 	  
 	  	for(var input in allInputs){  
-	      type = this.driver.getAttribute(true,input,attributeType);
+	      type = this.driver.getAttribute(true,allInputs[input],attributeType);
 	      if("text" == type){
-	          var fld = this.driver.getAttribute(true,input,attributeId);
+	          var fld = this.driver.getAttribute(true,allInputs[input],attributeId);
 	          fields.push(fld);
 	      }
 	  	}
@@ -966,13 +966,13 @@
 	  */
 	SynchronousWebDriver.prototype.getElementIndex = function(locator) {
 	  	var element = findElement_(this.driver,locator,this.context)[1];
-	  	var previousSibling;
+	  	var previousElement;
 	  	var index = 0;
-	  	while ((previousSibling = element.previousSibling) != null) {
-	        if (!this._isCommentOrEmptyTextNode(previousSibling)) {
+	  	while ((previousElement = element.previousSibling) != null) {
+	        if (!this._isCommentOrEmptyTextNode(previousElement)) {
 	            index++;
 	        }
-	        element = previousSibling;
+	        element = previousElement;
 	  	}
 	  	return index;
 	}
@@ -1180,20 +1180,18 @@
 	    tableName = matcher[1];
 	    row = matcher[2];
 	    col = matcher[3];
-	    
-	    var table = findElement_(this.driver,tableName,this.context)[1];
-	 
+	  
+	   var tableIndex = this.driver.findElement(new Array(ElementLocator.ID,tableName));
+	   var table = getElementAt_(tableIndex,this.context); 
+	   
 	    if (row > table.rows.length) {
 	        Assert.fail("Cannot access row " + row + " - table has " + table.rows.length + " rows");
 	    }
 	    else if (col > table.rows[row].cells.length) {
 	        Assert.fail("Cannot access column " + col + " - table row has " + table.rows[row].cells.length + " columns");
 	    }
-	    else {
-	    	
-	    		var elementId = table.rows[row].cells[col];
-	       	    actualContent = this.driver.getText(elementId);
-	        	return actualContent.trim();
+	    else {	    	
+	    	    return table.rows[row].cells[col].innerHTML;
 	    }
 	    return null; 
 	}
