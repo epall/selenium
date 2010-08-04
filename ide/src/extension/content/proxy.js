@@ -200,8 +200,7 @@
 				if(newFxbrowser)
 				fxbrowser = newFxbrowser;
 				}
-			
-				
+					
 				var response = new FakeRespond();
 	        	response.context = context;
 	            response.context.frame = null;
@@ -251,7 +250,9 @@
 	function searchFrames(fxbrowser,context){	
 		
 				if (context.frameId !== undefined) {
+				
 	    			var frame = findFrame(fxbrowser,context.frameId);
+	    			
 	    			if(frame && frame.document){
 	    				documentInFrame = frame.document;
 	    				context.frame  = frame;
@@ -260,18 +261,20 @@
 	        		
 	  			}
 	            
-	  		return context.frame;	
+	  			return context.frame;	
 	}        
 	
     findFrame = function(browser, frameId) {
 	  var stringId = "" + frameId;
 	  var names = stringId.split(".");
 	  var frame = browser.contentWindow;
+	
 	  for (var i = 0; i < names.length; i++) {
 	    // Try a numerical index first
 	    var index = names[i] - 0;
 	    if (!isNaN(index)) {
 	      frame = frame.frames[index];
+	    
 	      if (frame) {
 	        return frame;
 	      }
@@ -293,29 +296,33 @@
 	    }
   }
   
- return frame;
+  return frame;
   
 };
 	
-	function switchToFrame_(driver,id,context,fxb){	
+	function switchToFrame_(driver,id,context,fxbrowser){	
 		
+		  
+		    var frameId = new Array(id);
+		 
 			if(newContext){
-				context = new Context(context,id);
+				context = new Context(context,frameId[0]);
 				if(newFxbrowser)
 				fxbrowser = newFxbrowser;
 			}
 			
+	
+		
 			var response = new FakeRespond();
 	        response.context = context;
-	        response.context.fxbrowser = fxb;
+	        response.context.fxbrowser = fxbrowser;
 	        
-	        
-	      
-		     var frameId = new Array(id);
-			 driver.switchToFrame(response,frameId);
-			 context = response.context;
+	
+			driver.switchToFrame(response,frameId);
+            context = response.context;
 			 
-			 return context;
+		
+			return context;
 			 
 	}
 	
@@ -379,9 +386,9 @@
 		  while (allWindows.hasMoreElements()) {
 			  	var win = allWindows.getNext();
 			    if (win.top && win.top.fxdriver) {
-			      res.push(win.top.fxdriver.id);
+			      res.push(win.getBrowser());
 			    } else if (win.content) {
-			      res.push(win.content.name);
+			      res.push(win.getBrowser());
 			    }
 		  }
 		  return res;

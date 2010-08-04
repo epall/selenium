@@ -122,11 +122,42 @@
 		this.driver.close();
 	}
 	
-	SynchronousWebDriver.prototype.doCreateCookie = function(cookieName) {
-		var cookie = [];
-		cookie.push(cookie);
-		this.driver.addCookie(cookieName);
-	}
+/*	SynchronousWebDriver.prototype.doCreateCookie = function(cookieName) {
+		this.driver.addCookie(new Array(cookieName));
+	}*/
+	
+	SynchronousWebDriver.prototype.doCreateCookie = function(nameValuePair, optionsString) {
+   
+    var results = /[^\s=\[\]\(\),"\/\?@:;]+=[^\s=\[\]\(\),"\/\?@:;]*/.test(nameValuePair);
+    if (!results) {
+        throw new SeleniumError("Invalid parameter.");
+    }
+    var cookie = nameValuePair.trim();
+    results = /max_age=(\d+)/.exec(optionsString);
+    if (results) {
+        var expireDateInMilliseconds = (new Date()).getTime() + results[1] * 1000;
+        cookie += "; expires=" + new Date(expireDateInMilliseconds).toGMTString();
+    }
+    results = /path=([^\s,]+)[,]?/.exec(optionsString);
+    if (results) {
+        var path = results[1];
+        if (browserVersion.khtml) {
+            // Safari and conquerer don't like paths with / at the end
+            if ("/" != path) {
+                path = path.replace(/\/$/, "");
+            }
+        }
+        cookie += "; path=" + path;
+    }
+    results = /domain=([^\s,]+)[,]?/.exec(optionsString);
+    if (results) {
+        var domain = results[1];
+        cookie += "; domain=" + domain;
+    }
+    LOG.debug("Setting cookie to: " + cookie);
+    var doc = this.context.fxbrowser.contentDocument;
+    doc.cookie = cookie;
+}
 
 	/**
 	  * Press the control key and hold it down until doControlUp() is called or a new page is loaded.
@@ -148,7 +179,8 @@
       * Delete a named cookie.
       */
 	SynchronousWebDriver.prototype.doDeleteCookie = function(cookieName) {
-		this.driver.deleteCookie(cookieName);   
+		var cookie = this.getCookieByName(cookieName);	
+		this.driver.deleteCookie(cookie);   
 	}
 
 	/**
@@ -868,15 +900,12 @@
 
 	SynchronousWebDriver.prototype.getAllWindowTitles = function() {
 	 	
-		var current = this.driver.getCurrentWindowHandle();
-	    var handles = getWindowHandles();
+	    var handles = getWindowHandles();  
 	    attributes = [];
-	    for (handle in handles) {
-	      switchToWindow(handle);
-	      attributes.push(this.driver.getTitle());
+	    
+	    for (i=0;i<handles.length;i++) {	 
+	      attributes.push(handles[i].contentTitle);
 	    }
-	
-	    switchToWindow(current);
 	
 	    return attributes;	
 	 }
@@ -926,7 +955,7 @@
 	  */
 	SynchronousWebDriver.prototype.getCookieByName = function(cookieName) {
 		var name = null;
-	  	var doc = getDocument(this.context);
+	  	var doc = this.context.fxbrowser.contentDocument;
 	  	var ck = doc.cookie;
 	  	if (!ck) return null;
 	  	var ckPairs = ck.split(/;/);
@@ -1180,9 +1209,8 @@
 	    tableName = matcher[1];
 	    row = matcher[2];
 	    col = matcher[3];
-	  
-	   var tableIndex = this.driver.findElement(new Array(ElementLocator.ID,tableName));
-	   var table = getElementAt_(tableIndex,this.context); 
+	    
+	    var table = findElement_(this.driver,tableName,this.context)[1];
 	   
 	    if (row > table.rows.length) {
 	        Assert.fail("Cannot access row " + row + " - table has " + table.rows.length + " rows");
@@ -1246,9 +1274,9 @@
 	/**
 	  *
 	  */
-	SynchronousWebDriver.prototype.highlight = function() {
-	 
-	
+	SynchronousWebDriver.prototype.doHighlight = function(locator) {
+		var element = findElement_(this.driver,locator,this.context)[1];
+		highlight(element);
 	}
 	
 	/**
@@ -1363,7 +1391,8 @@
 	  */
 	SynchronousWebDriver.prototype.isTextPresent = function(pattern) {
 	  	var source = this.driver.getPageSource();
-	  	return source.indexOf(pattern) != -1;	    
+	  	return source.indexOf(pattern) != -1;	
+	  	
 	}
 	
 	/**
@@ -1398,10 +1427,10 @@
 	  */
 
 	function findElement_(driver,locator,context){
-	 
+			
 	  var pattern = /^([a-zA-Z]+)=(.*)$/;
 	  var result = locator.match(pattern);
-	  
+	
 	  var strategyName = "implicit";
 	  var use = locator;
 	  var res;
@@ -1431,8 +1460,7 @@
 	       strategyName = result[1];
 	       use = result[2];
 	    }
-	    
-	    
+	
 	    switch(strategyName){
 	      
 	        case "implicit":  
@@ -1450,11 +1478,11 @@
 	             
 	        		} else {
 	        			   
+	        			     
 	            			res = makeSimpleFinder(ElementLocator.ID,use);  
-	            			strategyName = ElementLocator.IDs;
-	            			
+	            			strategyName = ElementLocator.ID;
 	        				var error  = 'Unable to locate element: ' + JSON.stringify({
-	      					method: "id",
+	      					method: strategyName,
 	      					selector: use
 	      					});
 	      					 
@@ -1468,7 +1496,7 @@
 	        break;
 	        
 	        case "link":
-	      
+	         
 	        if(use.indexOf("exact:") == 0){
 	            // shortcut for fast case
 	            res = makeSimpleFinder(ElementLocator.LINK_TEXT,use.substring(6));
@@ -1524,7 +1552,7 @@
 			res = makeSimpleFinder(ElementLocator.ID,use);
 	        break;
 	
-	        case "identifier":     
+	        case "identifier":   
 	        res = makeSimpleFinder(ElementLocator.ID,use);
 	        var error  = 'Unable to locate element: ' + JSON.stringify({
 	      	method: "id",
