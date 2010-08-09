@@ -475,7 +475,6 @@ BrowserBot.prototype.selectFrame = function(target) {
         if (!match) {
             // neither, let's loop through the frame names
             var win = this.getCurrentWindow();
-
             if (win && win.frames && win.frames.length) {
                 for (var i = 0; i < win.frames.length; i++) {
                     if (win.frames[i].name == target) {
@@ -1178,7 +1177,7 @@ BrowserBot.prototype._handleClosedSubFrame = function(testWindow, doNotModify) {
     if (this.proxyInjectionMode) {
         return testWindow;
     }
-
+    
     if (this.isSubFrameSelected) {
         var missing = true;
         if (testWindow.parent && testWindow.parent.frames && testWindow.parent.frames.length) {
@@ -1382,7 +1381,6 @@ BrowserBot.prototype.findElementRecursive = function(locatorType, locatorString,
     if (element != null) {
         return element;
     }
-
     for (var i = 0; i < inWindow.frames.length; i++) {
         // On some browsers, the document object is undefined for third-party
         // frames.  Make sure the document is valid before continuing.
@@ -1405,6 +1403,8 @@ BrowserBot.prototype.findElementOrNull = function(locator, win) {
     if (win == null) {
         win = this.getCurrentWindow();
     }
+    
+  
     var element = this.findElementRecursive(locator.type, locator.string, win.document, win);
 
     if (element != null) {

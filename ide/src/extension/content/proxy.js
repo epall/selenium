@@ -36,16 +36,6 @@
 	  send: function() {
 	   
 	  }
-	  
-	 /* *//**
-		* Getter and setter to handle errors
-	    *//*
-	 
-	  set isError(error)    { this.json_.isError = error; },
-	  get isError()         { return this.json_.isError; },
-	  
-	  set response(res)     { this.json_.response = res; },
-	  get response()        { return this.json_.response; }*/
 	   
 	};
 
@@ -144,20 +134,22 @@
 	 * @param fx - fxbrowser
 	 */
 	
-	WebDriverProxy.prototype.createNewFunctionWithoutID = function(realF,object,ct,fxbrowser){
+	WebDriverProxy.prototype.createNewFunctionWithoutID = function(realF,object,context,fxbrowser){
 		return function(){	 
 		
 			if(newContext){		
-				ct = newContext;
+				context = newContext;
 				if(newFxbrowser)
 				fxbrowser = newFxbrowser;
 			}			
 			
 			var response = new FakeRespond();
-	        response.context = ct;
+	        response.context = context;
 	        response.context.frame = null;
 	        documentInFrame = null;
-	   
+	        
+	        // Determine whether or not we need to care about frames.
+	        
 	        var frameContext = searchFrames(fxbrowser,response.context);
 			if(frameContext)
 			response.context.frame = frameContext;
@@ -193,8 +185,7 @@
 	WebDriverProxy.prototype.createNewFunctionWithID = function(realF,object,context,fxbrowser){
 		
 		return function(){	 
-			
-		
+				
 				if(newContext){
 				context = newContext;
 				if(newFxbrowser)
@@ -206,13 +197,14 @@
 	            response.context.frame = null;
 	            documentInFrame = null;
 	        	var args = new Array();	
+	        	
 	        
+	        	// Determine whether or not we need to care about frames.
 	        
-			    var frameContext = searchFrames(fxbrowser,response.context);
+	            var frameContext = searchFrames(fxbrowser,response.context);
 			    if(frameContext)
 			    response.context.frame = frameContext;
 	          
-			
 	        	response.context.fxbrowser = fxbrowser;
 	        	
 			
@@ -226,6 +218,7 @@
 						}
 						realF.apply(object,args); 
 		         		return response.response;
+		         		
 				}
 				
 				// When the first argument is not boolean 
@@ -249,82 +242,86 @@
 	
 	function searchFrames(fxbrowser,context){	
 		
-				if (context.frameId !== undefined) {
-				
-	    			var frame = findFrame(fxbrowser,context.frameId);
-	    			
+  	
+		 if (context.frameId !== undefined) {	 	
+		    	var frame = findFrame(fxbrowser,context.frameId);
 	    			if(frame && frame.document){
 	    				documentInFrame = frame.document;
 	    				context.frame  = frame;
-	    				
-	    			}
-	        		
-	  			}
-	            
-	  			return context.frame;	
+	    				var frame = frame.document.getElementsByTagName("iframe")[0];
+	    				if(frame.contentWindow){
+	    					return frame.contentWindow;
+	    				}
+	    			}	    			
+	    			
+		 }
+		 
+	  	 return context.frame;	
 	}        
+
+
 	
     findFrame = function(browser, frameId) {
-	  var stringId = "" + frameId;
-	  var names = stringId.split(".");
-	  var frame = browser.contentWindow;
+		  
+		  var stringId = "" + frameId;
+		  var names = stringId.split(".");
+		  var frame = browser.contentWindow;
 	
-	  for (var i = 0; i < names.length; i++) {
-	    // Try a numerical index first
-	    var index = names[i] - 0;
-	    if (!isNaN(index)) {
-	      frame = frame.frames[index];
-	    
-	      if (frame) {
-	        return frame;
-	      }
-	    } else {
-	      // Fine. Use the name and loop
-	      var found = false;
-	      for (var j = 0; j < frame.frames.length; j++) {
-	        var f = frame.frames[j];
-	        if (f.name == names[i] || f.frameElement.id == names[i]) {
-	          frame = f;
-	          found = true;
-	          break;
-	        }
-	      }
+	  		for (var i = 0; i < names.length; i++) {
+			    // Try a numerical index first
+			    var index = names[i] - 0;
+			    if (!isNaN(index)) {
+			      frame = frame.frames[index];
+			    
+			      if (frame) {
+			        return frame;
+			      }
+			    } 
+			    
+			    else {
+			      // Fine. Use the name and loop
+			      var found = false;
+				      for (var j = 0; j < frame.frames.length; j++) {
+				      	   
+					        var f = frame.frames[j];
+					        if (f.name == names[i] || f.frameElement.id == names[i]) {
+					          frame = f;
+					          found = true;
+					          break;
+					        }
+			      	  }
 	
-	      if (!found) {
-	        return null;
-	      }
-	    }
-  }
+				      if (!found) {
+				        return null;
+				      }
+	    		}
+  		}
   
-  return frame;
+  		return frame;
   
-};
+	}
 	
 	function switchToFrame_(driver,id,context,fxbrowser){	
 		
-		  
-		    var frameId = new Array(id);
-		 
-			if(newContext){
-				context = new Context(context,frameId[0]);
+		   var frameId = new Array(id);
+		
+		   if(newContext){
+				context = newContext;	
 				if(newFxbrowser)
 				fxbrowser = newFxbrowser;
 			}
 			
-	
-		
 			var response = new FakeRespond();
 	        response.context = context;
 	        response.context.fxbrowser = fxbrowser;
-	        
 	
 			driver.switchToFrame(response,frameId);
             context = response.context;
-			 
-		
+ 
 			return context;
 			 
 	}
+
 	
 	function switchToWindow(windowId,opt_searchAttempt) {
 		    var context;
@@ -346,7 +343,7 @@
 	   			 	if (matches(win,lookFor)) {  
 	      		  	win.focus();
 	      			if (win.top.fxdriver) {
-	      				fxbrowser = win.getBrowser();
+	      				fxbrowser = win.getBrowser();	
 	        			context = new Context(win.fxdriver.id);
 	      			} else {
 	        				
