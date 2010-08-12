@@ -448,7 +448,8 @@ xpi(:name => "ide",
                     { "ide/src/extension/components/SeleniumIDEGenericAutoCompleteSearch.js" => "components/" },
                     { "ide/src/extension/install.rdf" => "/" },
                     { "ide/src/extension/chrome.manifest.production" => "/chrome.manifest" },
-                    { "common/src/js/core/scripts/selenium-testrunner.js" => "content-files/" }
+                    { "common/src/js/core/scripts/selenium-testrunner.js" => "content-files/" },
+		    {"selenium/test/js/html" => "chrome/content/selenium-tests/tests/html"}
                   ],
     :out => "selenium-ide-1.0.6-SNAPSHOT.xpi")
 
