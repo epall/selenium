@@ -6,5 +6,13 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-remote-client"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-remote-common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Test"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-chrome"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-firefox"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-htmlunit"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-internet-explorer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-remote-server"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-selenium"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/webdriver-support"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
