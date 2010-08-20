@@ -118,7 +118,6 @@ body, html {
 
 #controlPanel #runSuite {
     width: 32px;
-    background-image: url("icons/all.png");
 }
 
 #controlPanel #runSeleniumTest {

@@ -6,7 +6,7 @@
 	var newFxbrowser;
 	var documentInFrame;
 	
-	function SynchronousWebDriver(baseURL, window) {
+	function SynchronousWebDriver(baseURL,window) {
 	
 		this.baseUrl = baseURL;
 		this.defaultTimeout = 30 * 1000;
@@ -26,16 +26,18 @@
 	}
 
 	SynchronousWebDriver.createForWindow = function(window) {
-		return new SynchronousWebDriver(window);
+		return new SynchronousWebDriver();
 	}
 
 	SynchronousWebDriver.prototype.reset = function() {
-	
+   
 	}
 
 	SynchronousWebDriver.prototype.ensureNoUnhandledPopups = function() {
 	
 	}
+
+	
 
 	// ========================================= ACTIONS ===========================
 	
@@ -423,7 +425,7 @@
 	 */
 	
 	SynchronousWebDriver.prototype.doOpen = function(url) {
-		this.driver.get(absolutify(url, this.baseUrl));
+		this.driver.get(absolutify(url,this.baseUrl));
 		return this.makePageLoadCondition();
 	}
 	
@@ -865,7 +867,7 @@
 	 * @return string[] the IDs of all buttons on the page
 	 * 
 	 */
-	SynchronousWebDriver.prototype.getAllButtons = function(locator) {
+	SynchronousWebDriver.prototype.getAllButtons = function() {
 		var buttons = [];
 		var parameters = [];
 		parameters.push(ElementLocator.XPATH);
@@ -893,7 +895,7 @@
 	 * @return string[] the IDs of all field on the page
 	 * 
 	 */
-	SynchronousWebDriver.prototype.getAllFields = function(attributeLocator) {
+	SynchronousWebDriver.prototype.getAllFields = function() {
 		var fields = [];
 		var parameters = [];
 		parameters.push(ElementLocator.XPATH);
@@ -921,7 +923,7 @@
 	 * @return string[] the IDs of all links on the page
 	 * 
 	 */
-	SynchronousWebDriver.prototype.getAllLinks = function(attributeLocator) {
+	SynchronousWebDriver.prototype.getAllLinks = function() {
 		var links = [];
 		var parameters = [];
 		parameters.push(ElementLocator.XPATH);
@@ -1183,7 +1185,7 @@
 	 * @return string the selected option label in the specified select drop-down
 	 */
 	SynchronousWebDriver.prototype.getSelectedLabel = function(selectLocator) {
-		return this.findSelectedOptionProperty_(selectLocator, "text");
+		return this.findSelectedOptionProperty_(selectLocator,"text");
 	}
 	
 	/**
@@ -1195,7 +1197,7 @@
 	 * select drop-down
 	 */
 	SynchronousWebDriver.prototype.getSelectedLabels = function(selectLocator) {
-		return this.findSelectedOptionProperties_(selectLocator, "text");
+		return this.findSelectedOptionProperties_(selectLocator,"text");
 	}
 	
 	/**
@@ -1207,7 +1209,7 @@
 	 * select drop-down
 	 */
 	SynchronousWebDriver.prototype.getSelectedValues = function(selectLocator) {
-		return this.findSelectedOptionProperties_(selectLocator, "value");
+		return this.findSelectedOptionProperties_(selectLocator,"value");
 	}
 	
 	/**
@@ -1218,14 +1220,15 @@
 	 * @return string the selected option value in the specified select drop-down
 	 */
 	SynchronousWebDriver.prototype.getSelectedValue = function(selectLocator) {
-		return this.findSelectedOptionProperty_(selectLocator, "value");
+		return this.findSelectedOptionProperty_(selectLocator,"value");
 	}
 	
 	SynchronousWebDriver.prototype.findSelectedOptionProperties_ = function(locator, property) {
-		var element = findElement_(this.driver, locator, this.context)[1];
+		var element = findElement_(this.driver,locator, this.context)[1];
 		if (!("options" in element)) {
 			throw new SeleniumError("Specified element is not a Select (has no options)");
 		}
+		
 	
 		var selectedOptions = [];
 	
@@ -1238,7 +1241,7 @@
 	
 		if (selectedOptions.length == 0)
 			throw new SeleniumError("No option selected");
-		return selectedOptions;
+		return selectedOptions[0];
 	}
 	
 	SynchronousWebDriver.prototype.findSelectedOptionProperty_ = function(locator,property) {

@@ -17,6 +17,8 @@
 /*
  * An UI of Selenium IDE.
  */
+var playTestWithSe2 = true;
+var playTestSuiteWithSe2 = true;
 function Editor(window) {
 	
 	this.log.debug("initializing");
@@ -24,8 +26,8 @@ function Editor(window) {
 	window.editor = this;
 	var self = this;
 	this.recordFrameTitle = false;
-    this.app = new Application();
-    this.app.addObserver({
+    	this.app = new Application();
+    	this.app.addObserver({
             baseURLChanged: function() {
                 Editor.GENERIC_AUTOCOMPLETE.setCandidates(XulUtils.toXPCOMString(self.getAutoCompleteSearchParam("baseURL")),
                                                           XulUtils.toXPCOMArray(self.app.getBaseURLHistory()));
@@ -223,13 +225,42 @@ Editor.controller = {
 		case "cmd_selenium_play":
             editor.testSuiteProgress.reset();
             editor.playCurrentTestCase(null, 0, 1, false);
-			break;
+	    playTestWithSe2 = true;
+	    break;
 		case "cmd_selenium_play_se2":
-            editor.testSuiteProgress.reset();
-            editor.playCurrentTestCase(null, 0, 1, true);
+			if(!playTestWithSe2)
+			   {
+			      document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se2");
+			      editor.testSuiteProgress.reset();
+			      editor.playCurrentTestCase(null, 0, 1, false);
+			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/img.png");     
+			      playTestWithSe2 = true;
+                              playTestSuiteWithSe2 = false;
+			   }
+			   else
+			   {			 
+			    editor.testSuiteProgress.reset();
+		 	    document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/selected.png");
+		    	    document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se1");
+			    editor.playCurrentTestCase(null, 0, 1, true);
+		            playTestWithSe2 = false;
+                            playTestSuiteWithSe2 = true;
+			   }
+            	
             break;
 		case "cmd_selenium_play_suite":
-			editor.playTestSuite();
+		
+			 if(!playTestSuiteWithSe2)
+			   {
+			       editor.playTestSuite();	
+			       playTestSuiteWithSe2 = true;
+			   }
+			   else
+			   {			 
+			       editor.playTestSuiteSe2();
+                               playTestSuiteWithSe2 = false;
+			   }
+
 			break;
 		case "cmd_selenium_pause": 
 			if (editor.selDebugger.state == Debugger.PAUSED) {
@@ -642,6 +673,26 @@ Editor.prototype.playCurrentTestCase = function(next, index, total, useSe2) {
             self.testSuiteProgress.update(index + 1, total, failed);
             if (next) next();
         }, index > 0 /* reuse last window if index > 0 */, useSe2);
+}
+
+Editor.prototype.playTestSuiteSe2 = function() {
+    var index = -1;
+    this.app.getTestSuite().tests.forEach(function(test) {
+            if (test.testResult) {
+                delete test.testResult;
+            }
+        });
+    this.suiteTreeView.refresh();
+    this.testSuiteProgress.reset();
+    var self = this;
+    var total = this.app.getTestSuite().tests.length;
+    (function() {
+        if (++index < self.app.getTestSuite().tests.length) {
+            self.suiteTreeView.scrollToRow(index);
+            self.app.showTestCaseFromSuite(self.app.getTestSuite().tests[index]);
+            self.playCurrentTestCase(arguments.callee, index, total, true);
+        }
+    })();
 }
 
 Editor.prototype.playTestSuite = function() {
