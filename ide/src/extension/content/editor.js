@@ -18,7 +18,7 @@
  * An UI of Selenium IDE.
  */
 var playTestWithSe2 = true;
-var playTestSuiteWithSe2 = true;
+var i=1;
 function Editor(window) {
 	
 	this.log.debug("initializing");
@@ -134,6 +134,9 @@ function Editor(window) {
 	setTimeout("editor.showLoadErrors()", 500);
 	
     this.registerRecorder();
+document.getElementById("play-button").setAttribute("disabled","true");
+document.getElementById("play-suite-button").setAttribute("disabled","true");
+
 }
 
 Editor.checkTimestamp = function() {
@@ -223,42 +226,47 @@ Editor.controller = {
 		case "cmd_save_suite": editor.app.saveTestSuite(); break;
 		case "cmd_save_suite_as": editor.app.saveNewTestSuite(); break;
 		case "cmd_selenium_play":
-            editor.testSuiteProgress.reset();
-            editor.playCurrentTestCase(null, 0, 1, false);
-	    playTestWithSe2 = true;
+		if(!playTestWithSe2) {
+            		editor.testSuiteProgress.reset();
+            		editor.playCurrentTestCase(null, 0, 1, false);
+	    		
+		} else{
+			editor.testSuiteProgress.reset();
+			editor.playCurrentTestCase(null, 0, 1, true);
+                        
+		      
+		}
 	    break;
-		case "cmd_selenium_play_se2":
-			if(!playTestWithSe2)
+	    case "cmd_selenium_play_se2":
+			document.getElementById("play-button").setAttribute("disabled","false");
+			document.getElementById("play-suite-button").setAttribute("disabled","false");
+
+			 if(i/2 == Math.round(i/2))
 			   {
 			      document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se2");
-			      editor.testSuiteProgress.reset();
-			      editor.playCurrentTestCase(null, 0, 1, false);
 			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/img.png");     
-			      playTestWithSe2 = true;
-                              playTestSuiteWithSe2 = false;
+			      playTestWithSe2 = false; 
+			      i++;
 			   }
 			   else
-			   {			 
-			    editor.testSuiteProgress.reset();
-		 	    document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/selected.png");
+			   {
+			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/selected.png");
 		    	    document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se1");
-			    editor.playCurrentTestCase(null, 0, 1, true);
-		            playTestWithSe2 = false;
-                            playTestSuiteWithSe2 = true;
+		            playTestWithSe2 = true; 
+			    i++;
 			   }
+			
             	
             break;
 		case "cmd_selenium_play_suite":
 		
-			 if(!playTestSuiteWithSe2)
+			 if(!playTestWithSe2)
 			   {
 			       editor.playTestSuite();	
-			       playTestSuiteWithSe2 = true;
 			   }
 			   else
 			   {			 
 			       editor.playTestSuiteSe2();
-                               playTestSuiteWithSe2 = false;
 			   }
 
 			break;
