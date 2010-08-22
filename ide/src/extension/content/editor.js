@@ -244,13 +244,13 @@ Editor.controller = {
 			 if(i/2 == Math.round(i/2))
 			   {
 			      document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se2");
-			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/img.png");     
+			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/se2.png");     
 			      playTestWithSe2 = false; 
 			      i++;
 			   }
 			   else
 			   {
-			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/selected.png");
+			      document.getElementById("play-se2-button").setAttribute("image","chrome://selenium-ide/content/selenium/icons/se1.png");
 		    	    document.getElementById("play-se2-button").setAttribute("tooltiptext","Play in Se1");
 		            playTestWithSe2 = true; 
 			    i++;
